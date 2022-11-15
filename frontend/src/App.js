@@ -38,6 +38,18 @@ class App extends Component {
 
     this.setState({ contractDrop });
     this.setState({ contractPNDC });
+
+    let i = 0;
+    const claims = i;
+    this.setState({ claims });
+
+    while(await contractDrop.methods.s_userClaims(account, i).call({from: account}).then((r) => {
+      console.log(r);
+    }) !== 0) {
+      i ++;
+      const claims = i;
+      this.setState({ claims });
+    }
   }
 
   constructor(props) {
@@ -52,6 +64,7 @@ class App extends Component {
       royalty: [[]],
       time: null,
       collection: null,
+      claims: null,
     };
   }
 
@@ -237,6 +250,7 @@ class App extends Component {
               <div className="content mr-auto ml-auto">
                 <div>
                   <p>Account : {this.state.account}</p>
+                  <p>Available Claims : {this.state.claims}</p>
                 </div>
                 <br></br>
                 <h4>Safe Mint (Only Moderator)</h4>
