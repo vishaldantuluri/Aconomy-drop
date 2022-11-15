@@ -18,4 +18,7 @@ module.exports = {
       polygonMumbai: polygon,
     }
   },
+  paths : {
+    artifacts: './frontend/src/artifacts'
+  }
 };
