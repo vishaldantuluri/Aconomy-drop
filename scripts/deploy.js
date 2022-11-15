@@ -8,8 +8,8 @@ const hre = require("hardhat");
 
 async function main() {
 
-  const AconomyDrop = await hre.ethers.getContractFactory("AconomyDrop");
-  const instance = await AconomyDrop.deploy("0xf02c627B3Ae533D488cb25F072e542ee7CCc1D10");
+  const NFTDrop = await hre.ethers.getContractFactory("NFTDrop");
+  const instance = await NFTDrop.deploy("0xf02c627B3Ae533D488cb25F072e542ee7CCc1D10", "0xDf9CE7eCeC9388e6A71eeA2690EA5825B7b00ca1");
 
   await instance.deployed();
 
