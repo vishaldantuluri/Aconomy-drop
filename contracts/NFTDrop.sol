@@ -3,6 +3,7 @@ pragma solidity 0.8.2;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./LibShare.sol";
 import "./PNDC_ERC721.sol";
 import "./TokenERC721.sol";
@@ -11,7 +12,7 @@ interface TokenFactory {
     function collectionToOwner(address) external returns (address);
 }
 
-contract NFTDrop is Ownable, IERC721Receiver {
+contract NFTDrop is Ownable, IERC721Receiver, ReentrancyGuard {
     struct Claim {
         address moderator;
         address collection;
@@ -100,7 +101,7 @@ contract NFTDrop is Ownable, IERC721Receiver {
         );
     }
 
-    function claim() external payable {
+    function claim() external payable nonReentrant{
         uint256 m_totalClaims = s_userClaims[msg.sender].length;
         require(m_totalClaims != 0);
         uint256 totalPrice = 0;
@@ -161,6 +162,10 @@ contract NFTDrop is Ownable, IERC721Receiver {
     function removeMod(address _mod) external onlyOwner {
         require(s_moderators[_mod] == true);
         s_moderators[_mod] = false;
+    }
+
+    function changeFactory(address _factory) external onlyOwner {
+        Factory = _factory;
     }
 
     function onERC721Received(
