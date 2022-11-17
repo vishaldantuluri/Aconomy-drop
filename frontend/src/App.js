@@ -5,7 +5,7 @@ import PNDC_ERC721 from "./artifacts/contracts/PNDC_ERC721.sol/PNDC_ERC721.json"
 import TokenERC721 from "./artifacts/contracts/TokenERC721.sol/TokenERC721.json";
 import Web3 from "web3";
 
-const addressDrop = "0x3be68538C53B09247ce0b24e32847224fF3B9E17";
+const addressDrop = "0xaFA5aC4a16380D3706125c5b9b23658F4eAa10Cd";
 const addressPNDC = "0xf02c627B3Ae533D488cb25F072e542ee7CCc1D10"
 const abi = NFTDrop.abi;
 
@@ -39,17 +39,8 @@ class App extends Component {
     this.setState({ contractDrop });
     this.setState({ contractPNDC });
 
-    let i = 0;
-    const claims = i;
-    this.setState({ claims });
-
-    while(await contractDrop.methods.s_userClaims(account, i).call({from: account}).then((r) => {
-      console.log(r);
-    }) !== 0) {
-      i ++;
-      const claims = i;
-      this.setState({ claims });
-    }
+    let res = await contractDrop.methods.getClaims(account).call({from:account})
+    this.setState({ claims: res.length })
   }
 
   constructor(props) {
@@ -74,6 +65,20 @@ class App extends Component {
     console.log("capturing Id");
     const id = event.target.value;
     this.setState({ id });
+
+    const account = await window.ethereum.selectedAddress;
+    this.setState({ account });
+  };
+
+  capturePrice = async (event) => {
+    event.preventDefault();
+
+    const web3 = window.web3;
+
+    console.log("capturing price");
+    const num = event.target.value;
+    const price = await web3.utils.toWei(num, 'ether');
+    this.setState({ price });
 
     const account = await window.ethereum.selectedAddress;
     this.setState({ account });
@@ -167,6 +172,7 @@ class App extends Component {
     const id = this.state.id;
     const time = this.state.time;
     const collection = this.state.collection;
+    const price = this.state.price;
 
     if(collection === addressPNDC) {
       await this.state.contractPNDC.methods.approve(addressDrop, id).send({from: account}).then((r) => {
@@ -180,7 +186,7 @@ class App extends Component {
       })
     }
 
-    await this.state.contractDrop.methods.createClaim(collection, address, id, time).send({from: account}).then((r) => {
+    await this.state.contractDrop.methods.createClaim(collection, address, id, time, price).send({from: account}).then((r) => {
       console.log("create claim result:", r) })
   }
 
@@ -190,7 +196,22 @@ class App extends Component {
     const account = await window.ethereum.selectedAddress;
     this.setState({ account });
 
-    await this.state.contractDrop.methods.claim().send({from: account}).then((r) => {
+    let res = await this.state.contractDrop.methods.getClaims(account).call({from:account})
+    console.log(res);
+    console.log("claims length", res.length)
+    const secondsSinceEpoch = Math.round(Date.now() / 1000)
+    console.log(secondsSinceEpoch)
+    let totalPrice = 0;
+
+    for(let i = 0; i < res.length; i ++) {
+      if(secondsSinceEpoch <= res[i].endTime) {
+        totalPrice += parseInt(res[i].price);
+      }
+    }
+
+    console.log(totalPrice)
+
+    await this.state.contractDrop.methods.claim().send({from: account, value: totalPrice}).then((r) => {
       console.log("claim result:", r);
     })
   };
@@ -270,6 +291,7 @@ class App extends Component {
                   <input placeholder="Claimee" onChange={this.captureAddress} />
                   <input placeholder="Token Id" onChange={this.captureId} />
                   <input placeholder="Time" onChange={this.captureTime} />
+                  <input placeholder="Price in MATIC" onChange={this.capturePrice} />
                   <br></br>
                   <input type="submit" />
                 </form>

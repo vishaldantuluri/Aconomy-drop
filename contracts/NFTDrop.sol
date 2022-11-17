@@ -8,7 +8,7 @@ import "./PNDC_ERC721.sol";
 import "./TokenERC721.sol";
 
 interface TokenFactory {
-    function collectionToOwner(address) external returns(address);
+    function collectionToOwner(address) external returns (address);
 }
 
 contract NFTDrop is Ownable, IERC721Receiver {
@@ -17,6 +17,7 @@ contract NFTDrop is Ownable, IERC721Receiver {
         address collection;
         uint256 tokenId;
         uint256 endTime;
+        uint256 price;
     }
 
     event ClaimCreated(
@@ -39,7 +40,7 @@ contract NFTDrop is Ownable, IERC721Receiver {
         _;
     }
 
-    mapping(address => Claim[]) public s_userClaims;
+    mapping(address => Claim[]) internal s_userClaims;
     mapping(address => bool) public s_moderators;
     address public PNDC;
     address public Factory;
@@ -62,7 +63,8 @@ contract NFTDrop is Ownable, IERC721Receiver {
         address _collection,
         address _claimee,
         uint256 _tokenId,
-        uint256 _time
+        uint256 _time,
+        uint256 _price
     ) external onlyMod {
         require(
             _collection == PNDC ||
@@ -85,7 +87,8 @@ contract NFTDrop is Ownable, IERC721Receiver {
             msg.sender,
             _collection,
             _tokenId,
-            block.timestamp + _time
+            block.timestamp + _time,
+            _price
         );
         s_userClaims[_claimee].push(m_newClaim);
         emit ClaimCreated(
@@ -97,11 +100,22 @@ contract NFTDrop is Ownable, IERC721Receiver {
         );
     }
 
-    function claim() external {
+    function claim() external payable {
         uint256 m_totalClaims = s_userClaims[msg.sender].length;
         require(m_totalClaims != 0);
+        uint256 totalPrice = 0;
+        for (uint256 i = 0; i < m_totalClaims; ++i) {
+            if(block.timestamp <= s_userClaims[msg.sender][i].endTime) {
+                totalPrice += s_userClaims[msg.sender][i].price;
+            }
+        }
+        require(msg.value == totalPrice);
         for (uint256 i = 0; i < m_totalClaims; ++i) {
             if (block.timestamp <= s_userClaims[msg.sender][i].endTime) {
+                (bool isSuccess, ) = payable(
+                    s_userClaims[msg.sender][i].moderator
+                ).call{value: (s_userClaims[msg.sender][i].price)}("");
+                require(isSuccess, "Transfer failed");
                 PNDC_ERC721(s_userClaims[msg.sender][i].collection)
                     .safeTransferFrom(
                         address(this),
@@ -132,6 +146,11 @@ contract NFTDrop is Ownable, IERC721Receiver {
             }
         }
         delete s_userClaims[msg.sender];
+    }
+
+    function getClaims(address _claimee) external view returns(Claim[] memory claims) {
+        claims = s_userClaims[_claimee];
+        return claims;
     }
 
     function addMod(address _mod) external onlyOwner {
