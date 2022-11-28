@@ -1,6 +1,6 @@
 {
   "_format": "hh-sol-artifact-1",
-  "contractName": "TokenFactory",
+  "contractName": "ITokenFactory",
   "sourceName": "contracts/NFTDrop.sol",
   "abi": [
     {

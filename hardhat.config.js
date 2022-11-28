@@ -1,5 +1,6 @@
 require("@nomicfoundation/hardhat-toolbox");
 require("@nomiclabs/hardhat-etherscan");
+require("hardhat-gas-reporter");
 require('dotenv').config()
 
 const pk = process.env.PK;
@@ -20,5 +21,8 @@ module.exports = {
   },
   paths : {
     artifacts: './frontend/src/artifacts'
+  },
+  gasReporter: {
+    enabled: true
   }
 };

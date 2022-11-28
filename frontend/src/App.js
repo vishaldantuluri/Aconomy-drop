@@ -5,7 +5,7 @@ import PNDC_ERC721 from "./artifacts/contracts/PNDC_ERC721.sol/PNDC_ERC721.json"
 import TokenERC721 from "./artifacts/contracts/TokenERC721.sol/TokenERC721.json";
 import Web3 from "web3";
 
-const addressDrop = "0xdaCA0c7A2B4B42E035030D2470AFc666250c9bf6";
+const addressDrop = "0xD1Ba96bCaA35D296017A652B97198E72eCfad956";
 const addressPNDC = "0xf02c627B3Ae533D488cb25F072e542ee7CCc1D10"
 const abi = NFTDrop.abi;
 

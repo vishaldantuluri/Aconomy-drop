@@ -8,7 +8,7 @@ import "./LibShare.sol";
 import "./PNDC_ERC721.sol";
 import "./TokenERC721.sol";
 
-interface TokenFactory {
+interface ITokenFactory {
     function collectionToOwner(address) external returns (address);
 }
 
@@ -69,7 +69,7 @@ contract NFTDrop is Ownable, IERC721Receiver, ReentrancyGuard {
     ) external onlyMod {
         require(
             _collection == PNDC ||
-                TokenFactory(Factory).collectionToOwner(_collection) !=
+                ITokenFactory(Factory).collectionToOwner(_collection) !=
                 address(0)
         );
         require(PNDC_ERC721(_collection).ownerOf(_tokenId) == msg.sender);
@@ -112,37 +112,38 @@ contract NFTDrop is Ownable, IERC721Receiver, ReentrancyGuard {
         }
         require(msg.value == totalPrice);
         for (uint256 i = 0; i < m_totalClaims; ++i) {
-            if (block.timestamp <= s_userClaims[msg.sender][i].endTime) {
+            Claim memory m_claim = s_userClaims[msg.sender][i];
+            if (block.timestamp <= m_claim.endTime) {
                 (bool isSuccess, ) = payable(
-                    s_userClaims[msg.sender][i].moderator
-                ).call{value: (s_userClaims[msg.sender][i].price)}("");
+                    m_claim.moderator
+                ).call{value: (m_claim.price)}("");
                 require(isSuccess, "Transfer failed");
-                PNDC_ERC721(s_userClaims[msg.sender][i].collection)
+                PNDC_ERC721(m_claim.collection)
                     .safeTransferFrom(
                         address(this),
                         msg.sender,
-                        s_userClaims[msg.sender][i].tokenId
+                        m_claim.tokenId
                     );
                 emit TokensClaimed(
                     msg.sender,
-                    s_userClaims[msg.sender][i].tokenId,
-                    s_userClaims[msg.sender][i].collection,
+                    m_claim.tokenId,
+                    m_claim.collection,
                     true,
                     msg.sender
                 );
             } else {
-                PNDC_ERC721(s_userClaims[msg.sender][i].collection)
+                PNDC_ERC721(m_claim.collection)
                     .safeTransferFrom(
                         address(this),
-                        s_userClaims[msg.sender][i].moderator,
-                        s_userClaims[msg.sender][i].tokenId
+                        m_claim.moderator,
+                        m_claim.tokenId
                     );
                 emit TokensClaimed(
                     msg.sender,
-                    s_userClaims[msg.sender][i].tokenId,
-                    s_userClaims[msg.sender][i].collection,
+                    m_claim.tokenId,
+                    m_claim.collection,
                     false,
-                    s_userClaims[msg.sender][i].moderator
+                    m_claim.moderator
                 );
             }
         }
