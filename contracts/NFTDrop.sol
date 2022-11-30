@@ -67,6 +67,7 @@ contract NFTDrop is Ownable, IERC721Receiver, ReentrancyGuard {
         uint256 _time,
         uint256 _price
     ) external onlyMod {
+        require(s_userClaims[_claimee].length < 10, "claimee's pending claims limit reached");
         require(
             _collection == PNDC ||
                 ITokenFactory(Factory).collectionToOwner(_collection) !=
@@ -75,7 +76,6 @@ contract NFTDrop is Ownable, IERC721Receiver, ReentrancyGuard {
         require(PNDC_ERC721(_collection).ownerOf(_tokenId) == msg.sender);
         require(_claimee != msg.sender);
         require(_time > 0);
-        require(s_userClaims[_claimee].length <= 10, "claimee's pending claims limit reached");
 
         //needs approval
         PNDC_ERC721(_collection).safeTransferFrom(

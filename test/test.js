@@ -36,6 +36,7 @@ describe("Claim contract", function () {
         await pndc.safeMint(owner.address, "uri", [[owner.address, 100]]);
         await pndc.safeMint(owner.address, "uri", [[owner.address, 100]]);
         await pndc.safeMint(owner.address, "uri", [[owner.address, 100]]);
+        await pndc.safeMint(owner.address, "uri", [[owner.address, 100]]);
         await token.safeMint(owner.address, "uri", [true, [[owner.address, 100]]]);
 
         expect(await pndc.ownerOf(0)).to.equal(owner.address);
@@ -47,6 +48,7 @@ describe("Claim contract", function () {
         expect(await pndc.ownerOf(6)).to.equal(owner.address);
         expect(await pndc.ownerOf(7)).to.equal(owner.address);
         expect(await pndc.ownerOf(8)).to.equal(owner.address);
+        expect(await pndc.ownerOf(9)).to.equal(owner.address);
         expect(await token.ownerOf(0)).to.equal(owner.address);
     })
 
@@ -86,6 +88,11 @@ describe("Claim contract", function () {
         expect(claims[9].tokenId).to.equal(0)
         // expect(claims[9].endTime).to.equal(Math.floor(Date.now() / 1000) + 300)
         expect(claims[9].price).to.equal(100)
+    })
+
+    it("should disallow more than 10 claims", async () => {
+        await pndc.approve(drop.address, 9);
+        await expect(drop.createClaim(pndc.address, addr1.address, 9, 300, 0)).to.be.revertedWith("claimee's pending claims limit reached")
     })
 
     it("should be able to claim", async () => {
