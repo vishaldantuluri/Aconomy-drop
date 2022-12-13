@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.2;
+pragma solidity 0.8.9;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 import "./LibShare.sol";
 import "./PNDC_ERC721.sol";
 import "./TokenERC721.sol";
@@ -11,7 +12,7 @@ interface TokenFactory {
     function collectionToOwner(address) external returns (address);
 }
 
-contract NFTDrop is Ownable, IERC721Receiver {
+contract NFTDrop is ERC2771Context, Ownable, IERC721Receiver {
     struct Claim {
         address moderator;
         address collection;
@@ -42,10 +43,15 @@ contract NFTDrop is Ownable, IERC721Receiver {
 
     mapping(address => Claim[]) internal s_userClaims;
     mapping(address => bool) public s_moderators;
+    mapping(address => mapping(uint256 => bool)) public isClaimed;
     address public PNDC;
     address public Factory;
 
-    constructor(address _pndc, address _factory) {
+    constructor(
+        address _pndc,
+        address _factory,
+        address address_Forweder
+    ) ERC2771Context(address_Forweder) {
         PNDC = _pndc;
         Factory = _factory;
         s_moderators[msg.sender] = true;
@@ -105,7 +111,7 @@ contract NFTDrop is Ownable, IERC721Receiver {
         require(m_totalClaims != 0);
         uint256 totalPrice = 0;
         for (uint256 i = 0; i < m_totalClaims; ++i) {
-            if(block.timestamp <= s_userClaims[msg.sender][i].endTime) {
+            if (block.timestamp <= s_userClaims[msg.sender][i].endTime) {
                 totalPrice += s_userClaims[msg.sender][i].price;
             }
         }
@@ -148,7 +154,11 @@ contract NFTDrop is Ownable, IERC721Receiver {
         delete s_userClaims[msg.sender];
     }
 
-    function getClaims(address _claimee) external view returns(Claim[] memory claims) {
+    function getClaims(address _claimee)
+        external
+        view
+        returns (Claim[] memory claims)
+    {
         claims = s_userClaims[_claimee];
         return claims;
     }
@@ -170,5 +180,23 @@ contract NFTDrop is Ownable, IERC721Receiver {
         bytes memory
     ) public virtual override returns (bytes4) {
         return this.onERC721Received.selector;
+    }
+
+    function _msgSender()
+        internal
+        view
+        override(Context, ERC2771Context)
+        returns (address sender)
+    {
+        sender = ERC2771Context._msgSender();
+    }
+
+    function _msgData()
+        internal
+        view
+        override(Context, ERC2771Context)
+        returns (bytes calldata)
+    {
+        return ERC2771Context._msgData();
     }
 }

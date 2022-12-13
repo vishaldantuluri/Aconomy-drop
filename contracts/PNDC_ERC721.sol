@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.2;
+pragma solidity 0.8.9;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
@@ -8,10 +8,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "./LibShare.sol";
 
 contract PNDC_ERC721 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable {
-    event RoyaltiesSetForTokenId(
-        uint256 tokenId,
-        LibShare.Share[] royalties
-    );
+    event RoyaltiesSetForTokenId(uint256 tokenId, LibShare.Share[] royalties);
 
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIdCounter;
@@ -26,7 +23,7 @@ contract PNDC_ERC721 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable {
         address to,
         string memory uri,
         LibShare.Share[] memory royalties
-    ) external returns(uint256){
+    ) external returns (uint256) {
         uint256 tokenId = _tokenIdCounter.current();
         _setRoyaltiesByTokenId(tokenId, royalties);
         _tokenIdCounter.increment();

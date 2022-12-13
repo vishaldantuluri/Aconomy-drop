@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.2;
+pragma solidity 0.8.9;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
@@ -32,7 +32,7 @@ contract TokenERC721 is ERC721Enumerable, ERC721URIStorage, Ownable {
         address to,
         string memory uri,
         RoyaltiesSet memory royaltiesSet
-    ) public onlyOwner returns(uint256){
+    ) public onlyOwner returns (uint256) {
         uint256 tokenId = _tokenIdCounter.current();
         setRoyaltiesByTokenId(tokenId, royaltiesSet);
         _tokenIdCounter.increment();
@@ -45,7 +45,7 @@ contract TokenERC721 is ERC721Enumerable, ERC721URIStorage, Ownable {
         uint256 _totalNft,
         string[] memory _uri,
         RoyaltiesSet memory royaltiesSet
-    ) external onlyOwner{
+    ) external onlyOwner {
         require(_totalNft <= 15, "Minting more than 15 Nfts are not allowe");
         require(
             _totalNft == _uri.length,
@@ -68,7 +68,10 @@ contract TokenERC721 is ERC721Enumerable, ERC721URIStorage, Ownable {
     ) public onlyOwner {
         delete royaltiesByTokenId[_tokenId];
         royaltiesByTokenId[_tokenId].set = royaltiesSet.set;
-        _setRoyaltiesArray(royaltiesByTokenId[_tokenId].royalties, royaltiesSet.royalties);
+        _setRoyaltiesArray(
+            royaltiesByTokenId[_tokenId].royalties,
+            royaltiesSet.royalties
+        );
         emit RoyaltiesSetForTokenId(_tokenId, royaltiesSet.royalties);
     }
 
